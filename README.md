@@ -14,6 +14,11 @@ It fits the the peaks with help of the Package 'Peakutiles' and than calculates 
 This repository contains Jupyter notebook (`.ipynb`) files. All of the scripts were written using Python 2.7. 
 The main libraries used are [numpy](http://www.numpy.org/), pyplot from [matplotlib](https://matplotlib.org/index.html), [scipy.signal](https://docs.scipy.org/doc/scipy/reference/signal.html) with function 'savgol_filter' for smoothing, [peakutils](https://pypi.python.org/pypi/PeakUtils) for the fit, [sys](https://docs.python.org/2/library/sys.html) ,and [os](https://docs.python.org/2/library/os.html) for shell coments.
 
+## Literature data
+For the metal and oxides the data of ([ICDD-Database (2014)](www.icdd.com) spefically: PDF2014 PDF-2) is used,
+with the exception of Y$_6$WO$_12$ which is taken from: Persson, K. (2014). Materials data on y6wo12 (sg:148) by [materials
+project](https://www.materialsproject.org/materials/mp-19005/).
+
 ## Installation and use
 Only download the (`.ipynb`) file, put an file in to a folder for example '/XRD', than add a folder of samples with the name discribing the exmperiment e.g. 'Bulk' in this folder all plots are saved. In this folder add a subfolder with the name 'data', here you can put the ('.xy') data files to investigate. The full path than looks like ('/XRD/Bulk/data).
 
