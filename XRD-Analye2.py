@@ -1,7 +1,7 @@
 
 # coding: utf-8
 
-# In[1]:
+# In[4]:
 
 
 get_ipython().magic(u'matplotlib inline')
@@ -13,10 +13,10 @@ import matplotlib.pyplot as plt
 from pylab import *
 import os
 import sys
-version = '1.2'
+version = '1.3'
 
 
-# In[2]:
+# In[5]:
 
 
 #Sets the cell width to certan procentage
@@ -24,9 +24,52 @@ from IPython.core.display import display, HTML
 display(HTML("<style>.container { width:95% !important; }</style>"))
 
 
+# # Sample Selection and Read in of the Folder and Fitting Data
+
+# In[17]:
+
+
+#Folder = '26WCrY_Sa11'   # Folder where all data files which shall be used are found (and no other files)
+#Folder = '27WCrY_Sa04'
+
+#Folder = '16WCrY_Sa'
+##################Folder = 'CrReihe' ## load data is missing take from Felix...!!!!!!!!!
+#Folder = '33WCrY'
+######################Folder = 'YReihe'
+#Folder = 'NonOx'
+#Folder = '34WCrY_Sa06'
+#Folder = '01WCrY_3hMa'
+
+###################### PHD Thesis
+#Folder = 'W_powder'
+#Folder = 'Powder_overview'  # put in finished!! check double put in
+#Folder = 'Bulk_Powder'     #finished
+
+#Folder = 'LowpO2'          #finishhed
+#Folder = 'Phasen'          #finished
+
+#Folder = 'LowPO2_bulk'     #finisched
+Folder = 'Bulk_rough_smoth' #finished
+#Folder = 'Bulk_thin_comp'  #finished
+#Folder = 'Bulk'
+
+CurrentDirectory = os.curdir # defines the current file where this code is saved
+meas = os.listdir('%s/%s/data'%(CurrentDirectory,Folder)) # define list of data sets in the folder
+dataSets = []
+meas.sort() # sorting alphabetecly the file names%%% added by Tobias
+sec = []
+
+for i in range (0,len(meas)): # create data arrays
+    data = np.genfromtxt('%s/data/%s'%(Folder,meas[i]), skip_header = 1)
+    sec.append(data[:,1].max()) ##Defining secons from the highest peak so peaks get highest peaks without overlapping
+    dataSets.append(data)
+name = meas
+print name
+
+
 # ## Import function for json database files
 
-# In[3]:
+# In[18]:
 
 
 def json_data_read_reduce(file_path, start = 20, stop = 120, min_amp=20):
@@ -77,19 +120,25 @@ def json_data_read_reduce(file_path, start = 20, stop = 120, min_amp=20):
 
 # ### Test if import wokrs
 
-# In[4]:
+# In[19]:
 
 
-Y6WO12 = json_data_read_reduce('daten_bank/Y6WO12_mp-19005_xrd_Cu.json')
-print 'Y6WO12', len(Y6WO12), Y6WO12
+#Y6WO12 = json_data_read_reduce('daten_bank/Y6WO12_mp-19005_xrd_Cu.json')
+#print 'Y6WO12', len(Y6WO12), Y6WO12
 
 
 # ## Creating data base for oxide fitting
 
 # # Peak Database
 
-# In[5]:
+# In[20]:
 
+
+#=======================================================================================================#
+#    Peak data base for all metal and oxides: ICDD-Database (2014). PDF2014 PDF-2, www.icdd.com.        #
+#    with the exception of Y6WO12 which is from: Persson, K. (2014).                                    #
+#    Materials data on y6wo12 (sg:148) by materials project. An optional note.                          #
+#=======================================================================================================#
 
 W = [40.265,58.276,73.198,87.024]
 Cr = [44.393, 64.5447, 81.724, 98.0349] #self fitted only if needed
@@ -105,15 +154,14 @@ Cr2WO6 = [20.008,21.827,27.513,34.258,36.137,39.308,44.488,45.411,54.461,56.813,
 YO = [29.410]#,34.038,48.888,58.075]
 CrWO4 = [19.154, 26.750, 27.681, 30.624, 36.373, 38.871, 41.089, 42.994, 44.301
          ,50.256, 53.751, 54.794, 55.080, 57.207, 62.728, 63.736, 64.228, 68.653, 70.299, 70.663]#]
-Y2WO6 = json_data_read_reduce('daten_bank/Y2WO6_mp-565796_xrd_Cu.json')
+#Y2WO6 = json_data_read_reduce('daten_bank/Y2WO6_mp-565796_xrd_Cu.json')
 Y6WO12 = json_data_read_reduce('daten_bank/Y6WO12_mp-19005_xrd_Cu.json')
-Y2WO6_2 = json_data_read_reduce('daten_bank/Y2WO6_2_mp-510132_xrd_Cu.json')
+#Y2WO6_2 = json_data_read_reduce('daten_bank/Y2WO6_2_mp-510132_xrd_Cu.json')
 
 # filling vlaues into dic to call at key of oxide in the fitting loop
 dic = { 'Cr$_2$O$_3$':sort(Cr2O3), 'WO$_3$': sort(WO3),
        'WO$_{2.79}$':sort(WO279),'Cr$_2$WO$_6$':sort(Cr2WO6)
        #,'CrWO$_4$':CrWO4\
-       #,'Y$_2$WO$_6 ^*$': np.sort(np.append(Y2WO6,Y2WO6_2))
        ,'Y$_6$WO$_{12} ^*$' : Y6WO12
       }#'Y$_2$O$_3$':[29.410,34.038,48.888,58.075]#WO283+W8O21+
 #'Cr':[44.393,81.724,64.5447],#'W' : [40.265,58.276,73.198,87.024],
@@ -130,7 +178,7 @@ print dic_marker
 
 # ## Defining ordering function for multi peak analyses
 
-# In[6]:
+# In[21]:
 
 
 def peak(x,lambd=1.5418):
@@ -255,52 +303,9 @@ def ox_index(a, b, uncertanty = 0.06, sort = False, unique = False, reduce_to_re
     return  index #retuns the index of the fitting parts of the array
 
 
-# # Sample Selection and Read in of the Folder and Fitting Data
-
-# In[7]:
-
-
-#Folder = '26WCrY_Sa11'   # Folder where all data files which shall be used are found (and no other files)
-#Folder = '27WCrY_Sa04'
-
-#Folder = '16WCrY_Sa'
-##################Folder = 'CrReihe' ## load data is missing take from Felix...!!!!!!!!!
-#Folder = '33WCrY'
-######################Folder = 'YReihe'
-#Folder = 'NonOx'
-#Folder = '34WCrY_Sa06'
-#Folder = '01WCrY_3hMa'
-
-###################### PHD Thesis
-#Folder = 'W_powder'
-#Folder = 'Powder_overview'  # put in finished!! check double put in
-#Folder = 'Bulk_Powder'     #finished
-
-#Folder = 'LowpO2'          #finishhed
-#Folder = 'Phasen'          #finished
-
-#Folder = 'LowPO2_bulk'     #finisched
-#Folder = 'Bulk_rough_smoth' #finished
-Folder = 'Bulk_thin_comp'  #finished
-#Folder = 'Bulk'
-
-CurrentDirectory = os.curdir # defines the current file where this code is saved
-meas = os.listdir('%s/%s/data'%(CurrentDirectory,Folder)) # define list of data sets in the folder
-dataSets = []
-meas.sort() # sorting alphabetecly the file names%%% added by Tobias
-sec = []
-
-for i in range (0,len(meas)): # create data arrays
-    data = np.genfromtxt('%s/data/%s'%(Folder,meas[i]), skip_header = 1)
-    sec.append(data[:,1].max()) ##Defining secons from the highest peak so peaks get highest peaks without overlapping
-    dataSets.append(data)
-name = meas
-print name
-
-
 # ## Default values for the different folders and list of exceptions
 
-# In[8]:
+# In[22]:
 
 
 name = [0]*len(meas) # create array containing all the names of the ploted data
@@ -321,9 +326,11 @@ list_of_none_oxed = ['W','Cr','3.0$\,$h \nLow $p_{\mathrm{O}_2}$','0.0$\,$h','FA
 #where not metal phase is measured (shielded by the thick oxide layer)
 list_of_none_metal = ['FAST7 rough','FAST6 humid 251$\,$h', u'CEIT \nW-10Cr-0.5Y \n10 h ox',u'FAST4']
 # list of exceptions when a singal additional usfull peak is to be analyse the alloy composition
-exeption = [u'W-11.4Cr-0.6Y\n 3.5$\,$µm 2$\,$h Ox',u'W-11.4Cr-0.6Y\n 3.5 µm 2$\,$h Ox', '2.0$\,$h',
-            'FAST7',u'FAST7 initial', u'FAST7 befor Ox',u'FAST7 3$\,$h 1273$\,$K','FAST6',u'FAST6', 
-            u'FAST6 3523$\,$µm\n 44$\,$h Ox','16$\,$h','3$\,$h']
+exeption = [u'W-11.4Cr-0.6Y\n 3.5$\,$µm 2$\,$h Ox', u'W-11.4Cr-0.6Y\n 3.5 µm 2$\,$h Ox', 
+            '2.0$\,$h', 'FAST7',u'FAST7 initial', u'FAST7 befor Ox',u'FAST7 3$\,$h 1273$\,$K',
+            'FAST6',u'FAST6', u'FAST6 3523$\,$µm\n 44$\,$h Ox', '16$\,$h', '3$\,$h',
+            '1.25$\,$h \n(stage 2)', '2.0$\,$h \n(stage 2)'
+           ]#, '0.0$\,$h']#, u'W-Cr-Y, 3$\,$h']
 # if the gausian second fittig methode is not wanted (less precize fitting)
 non_gausian_metal = ['40$\,$h']
 
@@ -391,13 +398,13 @@ if Folder == 'W_powder':
     oixdes = False
     
 if Folder == 'Phasen':
-    name[0] = u'3.0$\,$h \nLow $p_{\mathrm{O}_2}$'
-    name[1] = '0.0$\,$h'#
-    name[2] = '0.1$\,$h'
-    name[3] = '1.25$\,$h'
-    name[4] = '2.0$\,$h'
-    name[5] = '3.0$\,$h'
-    name[6] = '8.0$\,$h'
+    #name[0] = u'3.0$\,$h \nLow $p_{\mathrm{O}_2}$'
+    name[0] = u'0.0$\,$h'#
+    name[1] = '0.1$\,$h \n(stage 1)'
+    name[2] = '1.25$\,$h \n(stage 2)'
+    name[3] = '2.0$\,$h \n(stage 2)'
+    name[4] = '3.0$\,$h \n(stage 3)'
+    name[5] = '8.0$\,$h \n(stage 3)'
     #name[5] = 'long'
     pos = 16
     metal = True
@@ -490,7 +497,7 @@ print 'start-stop',start, stop
 
 # ## Plot Settings
 
-# In[9]:
+# In[23]:
 
 
 get_ipython().magic(u"config InlineBackend.figure_format='svg'")
@@ -510,9 +517,12 @@ if col_change == True:
     cole = [1,0,-1]
     #color = color[cole]
 
+#Automatic figure hight setting by number of lines
 print len(name)
 if len(name)<5:
     hight = len(name)*2.
+elif len(name)<7:
+    hight = len(name)*1.35
 else:
     hight = len(name)*1
 
@@ -524,7 +534,7 @@ print hight
 # # Peak fitting
 # ## Calculate Cr content in W-Cr phase from peakshift relative to the tungsten peak
 
-# In[10]:
+# In[24]:
 
 
 aCr = 2.8846#2.8846#2.885 # lattice constant chromium in angstrom 288.46 
@@ -540,31 +550,37 @@ atomicMassCr = 51.9961
 
 # ### Current folder and samples
 
-# In[11]:
+# In[25]:
 
 
 print Folder
 print name
 
 
-# In[12]:
+# In[36]:
 
 
 #default
 #if 'minpeak' not in locals():
-minpeak = [0.04]*len(meas)
+minpeak = [0.05]*len(meas)
 peaknumber = [150]*len(meas)
 #HERE set your wanted values
 
-#if Folder == 'Bulk_rough_smoth':
-#    minpeak = [0.02,0.04,0.05]#*len(meas)
-#    peaknumber = [150]*len(meas)
+if Folder == 'Bulk_rough_smoth':
+    minpeak = [0.02,0.03,0.05]#*len(meas)
+    peaknumber = [150]*len(meas)
 if Folder == 'Bulk_thin_comp':
     minpeak = [0.03,0.05,0.04]#*len(meas)
     peaknumber = [150]*len(meas)
 if Folder == 'Bulk':
     minpeak = [0.03]*len(meas)
     peaknumber = [150]*len(meas)
+if Folder == 'Phasen':
+    minpeak = [0.05]*len(meas)
+    minpeak[3] = 0.08
+    peaknumber = [150]*len(meas)
+ 
+
 
 Smooth = 2
 if oixdes == True:
@@ -612,7 +628,7 @@ print Folder
 
 # ### Change mindpeak2 and peaknumber2 variable for alloy phase fitting
 
-# In[13]:
+# In[37]:
 
 
 #Metal
@@ -631,7 +647,7 @@ if Folder == 'Bulk_thin_comp':
     minpeak2 = [8,14,10]#*len(name)#8.3#4#8.1##0.06#0.08 #percent of maximal peak
     peaknumber2 = [90.,110.,90.]#*len(name)#65
 if Folder == 'Phasen':
-    minpeak2[6],minpeak2[5], minpeak2[4], minpeak2[1], minpeak2[0] = 5,2.2,12,8,6
+    minpeak2[5],minpeak2[4], minpeak2[3], minpeak2[1], minpeak2[0] = 5, 2.2, 13, 7.0, 8
 if Folder == 'Bulk_Powder':
     minpeak2 = [4.4]*len(name)#8.3#4#8.1##0.06#0.08 #percent of maximal peak
     peaknumber2 = [90.]*len(name)#65
@@ -687,7 +703,7 @@ xlim(start,stop)
 
 # # Plot
 
-# In[14]:
+# In[41]:
 
 
 ### dic_peaks = {} #open new dict where the name and peak data is filled in
@@ -756,25 +772,35 @@ for i in reversed(range(0,len(meas))):
             if len(aWCr)<=4:
                 bin_num = len(aWCr)-1 if (len(aWCr)-1)>=3 else 3  #for small number of peaks
                 print 'small number of peaks<=4', 'bin_num=', bin_num
-            elif aWCr.std()>0.08:
-                bin_num = len(aWCr)/2+len(aWCr)%2+10####<<<-4---------------###for big number of peaks, as than finer distinguishing is needed
+            elif aWCr.std()>0.07:
+                bin_num = len(aWCr)/2+len(aWCr)%2+10####for big number of peaks with a high diversity in the std., as than finer distinguishing is needed
                 print 'huge std of a'
+            #=================================================================#
+            #     Set higher bin number for many similar peaks                #
+            #=================================================================#
             else:
-                bin_num = len(aWCr)/2+len(aWCr)%2+2####<<<-4---------------###for big number of peaks, as than finer distinguishing is needed
+                bin_num = len(aWCr)/2+len(aWCr)%2+1#<<<<<<<< 4- -------###for big number of peaks, as than finer distinguishing is needed
                 print 'big number of peaks>4'
+            
             #creats bins which are used to filter the data (equivalent to a histogram)
             bins = np.linspace(aWCr.min(),aWCr.max()+0.00000001,bin_num)
             print 'len(bins)',len(bins), bins
+            
             #creats temporary emtpy np.array in the right size
             counts = np.zeros_like(bins)
+            
             # find the appropriate bin foreach a, right means right vlaue<bin index>bin-index
             k = np.searchsorted(bins, aWCr,side='right')
+            
             # add one for every fitting value to a bin
             np.add.at(counts, k, 1)
+            
             #creats array of lenght bins with the aproperiat index values of bins
             v_ = np.arange(len(bins))
+            
             #checks at which bin index the count is higher than minmal_count 2(default or 1 for thinfilm samples) (so significant)
             vin =  v_[(counts>2)]
+            
             #check if any True value is found
             if (((counts>2).sum() == False) or (minimal_count < 2)):
                 vin =  v_[(counts>1)]#if not, reduce condition to more than 1
@@ -817,7 +843,7 @@ for i in reversed(range(0,len(meas))):
             dic_array = np.array(dic[key])
             peak_array = peaks_x[temp_index_ox]
             print key, len(temp_index_ox), '{:.3f}'.format(np.abs(peak_array[ox_index(peak_array,dic[key])]-dic_array[ox_index(dic[key],peak_array)]).mean())
-            if (len(temp_index_ox) >= 1):#checks if array is empty=1, or filters for more than one peak
+            if (len(temp_index_ox) >= 1):#<----------checks if array is empty=1, or filters for more than one peak if set to 2
                 #checks the average distance fit position and databank
                 if (np.abs(peak_array[ox_index(peak_array,dic_array)]-dic_array[ox_index(dic_array,peak_array)]).mean()<0.056):
                     scatter(peaks_x[temp_index_ox],y[indexes][rel][temp_index_ox]+(0.1+dic_marker[key][2])*peakhight                            ,marker=dic_marker[key][0],color=dic_marker[key][1],s = 40,alpha=0.8                            ,label = key if key not in plt.gca().get_legend_handles_labels()[1] else '')
@@ -843,7 +869,7 @@ savefig('%s/06_XRD%snew%s.png'%(Folder,test,Folder), bbox_inches = 'tight', tran
 # # End
 # Here the fitting parameters can be tested if they are reasonably well for the Folder
 
-# In[15]:
+# In[36]:
 
 
 #rouding based Fitting---> slower but little more stable
