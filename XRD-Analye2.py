@@ -1,7 +1,7 @@
 
 # coding: utf-8
 
-# In[4]:
+# In[1]:
 
 
 get_ipython().magic(u'matplotlib inline')
@@ -16,7 +16,7 @@ import sys
 version = '1.3'
 
 
-# In[5]:
+# In[2]:
 
 
 #Sets the cell width to certan procentage
@@ -26,7 +26,7 @@ display(HTML("<style>.container { width:95% !important; }</style>"))
 
 # # Sample Selection and Read in of the Folder and Fitting Data
 
-# In[17]:
+# In[183]:
 
 
 #Folder = '26WCrY_Sa11'   # Folder where all data files which shall be used are found (and no other files)
@@ -35,6 +35,7 @@ display(HTML("<style>.container { width:95% !important; }</style>"))
 #Folder = '16WCrY_Sa'
 ##################Folder = 'CrReihe' ## load data is missing take from Felix...!!!!!!!!!
 #Folder = '33WCrY'
+
 ######################Folder = 'YReihe'
 #Folder = 'NonOx'
 #Folder = '34WCrY_Sa06'
@@ -42,14 +43,14 @@ display(HTML("<style>.container { width:95% !important; }</style>"))
 
 ###################### PHD Thesis
 #Folder = 'W_powder'
-#Folder = 'Powder_overview'  # put in finished!! check double put in
+Folder = 'Powder_overview'  # put in finished!! check double put in
 #Folder = 'Bulk_Powder'     #finished
 
 #Folder = 'LowpO2'          #finishhed
 #Folder = 'Phasen'          #finished
 
 #Folder = 'LowPO2_bulk'     #finisched
-Folder = 'Bulk_rough_smoth' #finished
+#Folder = 'Bulk_rough_smoth' #finished
 #Folder = 'Bulk_thin_comp'  #finished
 #Folder = 'Bulk'
 
@@ -69,7 +70,7 @@ print name
 
 # ## Import function for json database files
 
-# In[18]:
+# In[184]:
 
 
 def json_data_read_reduce(file_path, start = 20, stop = 120, min_amp=20):
@@ -120,7 +121,7 @@ def json_data_read_reduce(file_path, start = 20, stop = 120, min_amp=20):
 
 # ### Test if import wokrs
 
-# In[19]:
+# In[185]:
 
 
 #Y6WO12 = json_data_read_reduce('daten_bank/Y6WO12_mp-19005_xrd_Cu.json')
@@ -131,7 +132,7 @@ def json_data_read_reduce(file_path, start = 20, stop = 120, min_amp=20):
 
 # # Peak Database
 
-# In[20]:
+# In[186]:
 
 
 #=======================================================================================================#
@@ -178,7 +179,7 @@ print dic_marker
 
 # ## Defining ordering function for multi peak analyses
 
-# In[21]:
+# In[187]:
 
 
 def peak(x,lambd=1.5418):
@@ -237,7 +238,7 @@ def irrelevant(x):
     return y
 
 #searchsort numpy based fitting ---> very fast and precise /prone if values overlap in the uncertanty range
-def ox_index(a, b, uncertanty = 0.06, sort = False, unique = False, reduce_to_relevant = False):
+def ox_index(a, b, uncertanty = 0.07, sort = False, unique = False, reduce_to_relevant = False):
     r'''Finds peaks in the uncertanty range (default [-0.06, 0.06]) that fit database entry
     givening back index peakpostion that doas fit the data base. 
     Base on the numpy.searchsorted function
@@ -303,9 +304,61 @@ def ox_index(a, b, uncertanty = 0.06, sort = False, unique = False, reduce_to_re
     return  index #retuns the index of the fitting parts of the array
 
 
+# In[188]:
+
+
+def plane_count(x):
+    '''
+    Follwing should be true:
+    1. The number of peaks for one concentration can not be higher than the number of Fitted planes 
+        => active_planes >= fequanzy musst be lower or equal.-> So bin number has to be increased in this case
+    2. The number of concentrations can't be lower, than the highest number of peaks fitted in one plane, 
+       depends on the lower boundary of peak fitts required
+    This helps to find a reasonable amount of bins and the highest frequancy the physic allows.
+    
+    Returns
+    -------
+    number of fitted planes as 'active_planes'
+    minimal number of phases to be seperated, based of the highest peak count in one plane 'minimal__phases'
+    count per plane 'fitted_planes'
+    
+    Example:
+    --------
+    x = np.array([42,45,50,59,73.5,87,88,100])
+    print 'highest possible number of frequancy (number of planes):', plane_count(x)[0]#condition 1.
+    print 'minimal number of phases:', plane_count(x)[1]#condition 2.
+    >>> highest possible number of frequancy (number of planes): 4 
+    >>> minimal number of phases: 2
+    '''
+    #number of fitted planes
+    x = np.array(x)
+    a, b, c, d, e, f, g, h = 40.23, 44.41, 58.1, 64.6, 73.17, 81.78, 86.9, 98.04
+    fitted_planes = np.array([len(x[(a <x) & (x< b)]),len(x[(c <x) & (x< d)]),len(x[(e <x) & (x< f)]),len(x[(g <x) & (x< h)])])
+    #condition 1. number of active planes
+    active_planes = (fitted_planes >= 1).sum()    
+    #condition 2. number of minimal number of concentration
+    minimal_phases = fitted_planes.max() 
+    
+    return active_planes, minimal_phases, fitted_planes
+
+
+# ### Next step,
+# make a while loop which starts with the lowest number of bins, checks for the highest frequency.
+# Than iterative increases the number of bins till frequency reaches the given number
+
+# In[189]:
+
+
+x = np.array([41,42,43,45,50,59,60,  73.5,87,88,100])
+print plane_count(x)[0]
+print plane_count(x)[1]
+print plane_count(x)[2]
+x[argsort(x)[-2]]
+
+
 # ## Default values for the different folders and list of exceptions
 
-# In[22]:
+# In[205]:
 
 
 name = [0]*len(meas) # create array containing all the names of the ploted data
@@ -329,7 +382,8 @@ list_of_none_metal = ['FAST7 rough','FAST6 humid 251$\,$h', u'CEIT \nW-10Cr-0.5Y
 exeption = [u'W-11.4Cr-0.6Y\n 3.5$\,$µm 2$\,$h Ox', u'W-11.4Cr-0.6Y\n 3.5 µm 2$\,$h Ox', 
             '2.0$\,$h', 'FAST7',u'FAST7 initial', u'FAST7 befor Ox',u'FAST7 3$\,$h 1273$\,$K',
             'FAST6',u'FAST6', u'FAST6 3523$\,$µm\n 44$\,$h Ox', '16$\,$h', '3$\,$h',
-            '1.25$\,$h \n(stage 2)', '2.0$\,$h \n(stage 2)'
+            '1.25$\,$h \n(stage 2)', '2.0$\,$h \n(stage 2)',
+            u'W-Cr-Y, 3$\,$h'
            ]#, '0.0$\,$h']#, u'W-Cr-Y, 3$\,$h']
 # if the gausian second fittig methode is not wanted (less precize fitting)
 non_gausian_metal = ['40$\,$h']
@@ -497,7 +551,7 @@ print 'start-stop',start, stop
 
 # ## Plot Settings
 
-# In[23]:
+# In[206]:
 
 
 get_ipython().magic(u"config InlineBackend.figure_format='svg'")
@@ -534,7 +588,7 @@ print hight
 # # Peak fitting
 # ## Calculate Cr content in W-Cr phase from peakshift relative to the tungsten peak
 
-# In[24]:
+# In[207]:
 
 
 aCr = 2.8846#2.8846#2.885 # lattice constant chromium in angstrom 288.46 
@@ -550,16 +604,17 @@ atomicMassCr = 51.9961
 
 # ### Current folder and samples
 
-# In[25]:
+# In[208]:
 
 
 print Folder
 print name
 
 
-# In[36]:
+# In[209]:
 
 
+# ===== Oixdes =====#
 #default
 #if 'minpeak' not in locals():
 minpeak = [0.05]*len(meas)
@@ -580,8 +635,6 @@ if Folder == 'Phasen':
     minpeak[3] = 0.08
     peaknumber = [150]*len(meas)
  
-
-
 Smooth = 2
 if oixdes == True:
     for i in reversed(range(0,len(meas))):
@@ -628,11 +681,10 @@ print Folder
 
 # ### Change mindpeak2 and peaknumber2 variable for alloy phase fitting
 
-# In[37]:
+# In[210]:
 
 
-#Metal
-
+#=======Metal=========#
 #if 'minpeak2' not in locals():
 minpeak2 = [12]*len(name)#8.3#4#8.1##0.06#0.08 #percent of maximal peak
 peaknumber2 = [90.]*len(name)#65
@@ -648,6 +700,7 @@ if Folder == 'Bulk_thin_comp':
     peaknumber2 = [90.,110.,90.]#*len(name)#65
 if Folder == 'Phasen':
     minpeak2[5],minpeak2[4], minpeak2[3], minpeak2[1], minpeak2[0] = 5, 2.2, 13, 7.0, 8
+    bigpeak_plus = 1
 if Folder == 'Bulk_Powder':
     minpeak2 = [4.4]*len(name)#8.3#4#8.1##0.06#0.08 #percent of maximal peak
     peaknumber2 = [90.]*len(name)#65
@@ -661,7 +714,12 @@ if Folder == 'Powder_overview':
 if Folder == 'Bulk':
     minpeak2 = [6]*len(meas)
     peaknumber2 = [90.]*len(meas)
-
+if Folder == 'LowpO2':
+    minpeak2 = [7]*len(name)#8.3#4#8.1##0.06#0.08 #percent of maximal peak
+    minpeak2[2] = 5.5
+    minpeak2[0] = 6.5
+    peaknumber2 = [90.]*len(name)#65
+    
 print minpeak2
 
 #color = color[bla]
@@ -703,7 +761,7 @@ xlim(start,stop)
 
 # # Plot
 
-# In[41]:
+# In[220]:
 
 
 ### dic_peaks = {} #open new dict where the name and peak data is filled in
@@ -766,34 +824,34 @@ for i in reversed(range(0,len(meas))):
         inds =[] #pruce empty list to fill with indices for each bin (histogram) idividualy
         print len(aWCr),'{:.2}'.format(aWCr.std()),'standart deviation lattice constant'
         
-        if aWCr.std()>0.003: #filtering if there are more than one cubic phase, only shown if 3 or more## turn off by increasing standdeviation
+        if aWCr.std()>0.004: #filtering if there are more than one cubic phase, only shown if 3 or more## turn off by increasing standdeviation
             #check length of a, and find proper spacing of bins
             print 'ON!!length{}'.format(len(aWCr)), sort(aWCr)#tells u that filtering is active
-            if len(aWCr)<=4:
-                bin_num = len(aWCr)-1 if (len(aWCr)-1)>=3 else 3  #for small number of peaks
-                print 'small number of peaks<=4', 'bin_num=', bin_num
-            elif aWCr.std()>0.07:
-                bin_num = len(aWCr)/2+len(aWCr)%2+10####for big number of peaks with a high diversity in the std., as than finer distinguishing is needed
-                print 'huge std of a'
-            #=================================================================#
-            #     Set higher bin number for many similar peaks                #
-            #=================================================================#
-            else:
-                bin_num = len(aWCr)/2+len(aWCr)%2+1#<<<<<<<< 4- -------###for big number of peaks, as than finer distinguishing is needed
-                print 'big number of peaks>4'
-            
-            #creats bins which are used to filter the data (equivalent to a histogram)
-            bins = np.linspace(aWCr.min(),aWCr.max()+0.00000001,bin_num)
-            print 'len(bins)',len(bins), bins
-            
-            #creats temporary emtpy np.array in the right size
-            counts = np.zeros_like(bins)
-            
-            # find the appropriate bin foreach a, right means right vlaue<bin index>bin-index
-            k = np.searchsorted(bins, aWCr,side='right')
-            
-            # add one for every fitting value to a bin
-            np.add.at(counts, k, 1)
+            #==================================================================================#
+            #    increasing the number of bins till a reasonable amount of phases is found     #
+            #==================================================================================#
+            print 'frequency of phase peak',plane_count(peaks_x2)[0]
+            print 'minimal number of phases',plane_count(peaks_x2)[1]
+            bin_num = plane_count(peaks_x2)[1]
+            while True:
+                #creats bins which are used to filter the data (equivalent to a histogram)
+                bins = np.linspace(aWCr.min(),aWCr.max()+0.00000001,bin_num)
+                print 'len(bins)',len(bins), bins
+                #creats temporary emtpy np.array in the right size
+                counts = np.zeros_like(bins)
+                # find the appropriate bin foreach a, right means right vlaue<bin index>bin-index
+                k = np.searchsorted(bins, aWCr,side='right')
+                # add one for every fitting value to a bin
+                np.add.at(counts, k, 1)
+                #counts maximal count
+                frequency = counts.max()
+                print 'frequency', frequency
+                print counts
+                # breaks if condition 1 and 2 is fullfilled
+                if (frequency <= plane_count(peaks_x2)[0]) & ((counts>0).sum()  >= plane_count(peaks_x2)[1]):
+                    break
+                #increase bin number for better separetion
+                bin_num += 1
             
             #creats array of lenght bins with the aproperiat index values of bins
             v_ = np.arange(len(bins))
@@ -838,7 +896,9 @@ for i in reversed(range(0,len(meas))):
     if (oixdes==True) and (name[i] not in list_of_none_oxed):
         #print name[i], (name[i] not in list_of_none_oxed)
         for key in dic:
-            temp_index_ox = ox_index(peaks_x,dic[key], uncertanty=0.07)#0.15)# for BULK
+            temp_index_ox = ox_index(peaks_x,dic[key])
+            if Folder == 'Bulk':#exception for  bulk
+                temp_index_ox = ox_index(peaks_x,dic[key], uncertanty=0.15)
             #print key,len(peaks_x),
             dic_array = np.array(dic[key])
             peak_array = peaks_x[temp_index_ox]
@@ -869,7 +929,47 @@ savefig('%s/06_XRD%snew%s.png'%(Folder,test,Folder), bbox_inches = 'tight', tran
 # # End
 # Here the fitting parameters can be tested if they are reasonably well for the Folder
 
-# In[36]:
+# In[212]:
+
+
+plane_count(peaks_x2)
+print 'maximal_frequency', plane_count(peaks_x2)[0]
+print 'minimalbin', plane_count(peaks_x2)[1]
+
+
+# In[218]:
+
+
+# Works incoperate into code
+bin_num = plane_count(peaks_x2)[1]
+#frequency = 5#plane_count(peaks_x2)[0]+1
+#print 'frequency', frequency
+#counts = np.array([1,1,1,1])
+while True:#(frequency > plane_count(peaks_x2)[0]) & ((counts>0).sum()  >= plane_count(peaks_x2)[1]):
+    #creats bins which are used to filter the data (equivalent to a histogram)
+    bins = np.linspace(aWCr.min(),aWCr.max()+0.00000001,bin_num)
+    print 'len(bins)',len(bins), bins
+         
+    #creats temporary emtpy np.array in the right size
+    counts = np.zeros_like(bins)
+    # find the appropriate bin foreach a, right means right vlaue<bin index>bin-index
+    k = np.searchsorted(bins, aWCr,side='right')
+         
+    # add one for every fitting value to a bin
+    np.add.at(counts, k, 1)
+    frequency = counts.max()
+    print 'frequency', frequency
+    print '(counts>0).sum()', (counts>0).sum()
+    if (frequency <= plane_count(peaks_x2)[0]) & ((counts>0).sum()  >= plane_count(peaks_x2)[1]):
+        break
+    
+    bin_num += 1
+print counts
+
+print ((counts>0).sum()  >= plane_count(peaks_x2)[1])
+
+
+# In[49]:
 
 
 #rouding based Fitting---> slower but little more stable
@@ -885,4 +985,35 @@ def index_round(peaks_x,ox,dec = 1):
     #else:
     #    c = np.searchsorted(a[c],b[d],side='left')
     return c
+
+
+# In[ ]:
+
+
+# Snipped from former working code
+if len(aWCr)<=4:
+                bin_num = len(aWCr)-1 if (len(aWCr)-1)>=3 else 3  #for small number of peaks
+                print 'small number of peaks<=4', 'bin_num=', bin_num
+            elif aWCr.std()>0.07:
+                bin_num = len(aWCr)/2+len(aWCr)%2+10####for big number of peaks with a high diversity in the std., as than finer distinguishing is needed
+                print 'huge std of a'
+            #=================================================================#
+            #     Set higher bin number for many similar peaks                #
+            #=================================================================#
+            else:
+                bin_num = len(aWCr)/2+len(aWCr)%2+3#<<<<<<<< 4- -------###for big number of peaks, as than finer distinguishing is needed
+                print 'big number of peaks>4'
+            
+            #creats bins which are used to filter the data (equivalent to a histogram)
+            bins = np.linspace(aWCr.min(),aWCr.max()+0.00000001,bin_num)
+            print 'len(bins)',len(bins), bins
+            
+            #creats temporary emtpy np.array in the right size
+            counts = np.zeros_like(bins)
+            
+            # find the appropriate bin foreach a, right means right vlaue<bin index>bin-index
+            k = np.searchsorted(bins, aWCr,side='right')
+            
+            # add one for every fitting value to a bin
+            np.add.at(counts, k, 1)
 
