@@ -27,3 +27,4 @@ Only download the ('.ipynb') and the XRD_Analyses_Modul files, put both files in
 ## Comment and Feedback
 
 At the moment this is optimized for the BCC W-Cr system but an adaption for other systems is possible if the [Vegard's law](https://en.wikipedia.org/wiki/Vegard%27s_law) applies for the system.
+Distributed under the MIT license. See ``LICENSE.txt`` for more information.
