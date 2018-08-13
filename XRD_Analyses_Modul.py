@@ -232,7 +232,7 @@ def ox_index(a, b, uncertanty = 0.07, sort = False, unique = False, reduce_to_re
     index = intersection(a,b)
     #retuns the index of the fitting parts of the array with further information:
     if len(index) == 0:
-        print ('No match found for uncertanty {:.3f}'.format(uncertanty))
+        #print ('No match found for uncertanty {:.3f}'.format(uncertanty))
         return index
     elif len(intersection(b,a)) == len(index):
         if np.abs(b[intersection(b,a)]-a[index]).mean()<(uncertanty-0.014):#(len(intersection(a,b))*uncertanty/10)):
