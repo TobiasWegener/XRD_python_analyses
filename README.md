@@ -22,7 +22,7 @@ except Y$_6$WO$_{12}$ and W$_{8}$O$_{21}$, which are taken from: Persson, K. (20
 project](https://www.materialsproject.org/materials/mp-19005/).
 
 ## Installation and use
-Only download the ('.ipynb') and the XRD_Analyses_Modul files, put both files in to a folder for example '/XRD', then add a folder of samples with the name describing the experiment e.g. 'Bulk' in this folder all plots are saved. In this folder ('Bulk') create a subfolder with the name '/data', here you can put the ('.xy') data files to investigate. The full path then looks like ('/XRD/Bulk/data).
+Only download the ('.ipynb') and the XRD_Analyses_Modul files, put both files in to a folder for example '/XRD', then add a folder of samples with the name describing the experiment e.g. 'Bulk' in this folder all plots are saved. In this folder ('Bulk') create a subfolder with the name '/data', here you can put the ('.xy') data files to investigate. The full path then looks like ('/XRD/Bulk/data').
 
 ## Comment and Feedback
 
